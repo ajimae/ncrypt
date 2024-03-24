@@ -1,0 +1,46 @@
+name: ci
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 14
+      - run: yarn install --frozen-lockfile
+      - run: yarn test
+
+  publish-gpr:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v2
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - run: yarn install --production=false
+      - run: yarn run build
+      - run: |
+          echo @ajimae:https://npm.pkg.github.com/ > ./.npmrc
+          echo '//npm.pkg.github.com/:_authToken=${NPM_TOKEN}' >> ./.npmrc
+      - run: npm publish --access=public
+        working-directory: .
+        env:
+          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
