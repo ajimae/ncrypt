@@ -1,34 +1,46 @@
+// {
+  // "ts-node": {
+  //   "compilerOptions": {
+  //     "module": "commonjs",
+  //     "verbatimModuleSyntax": false,
+  //   }
+  // },
+//   "compilerOptions": {
+//     // Enable latest features
+//     "lib": ["ESNext"],
+//     "target": "ESNext",
+//     "module": "CommonJS",
+//     "moduleDetection": "force",
+//     "jsx": "react-jsx",
+//     "allowJs": true,
+//     "rootDir": ".",
+
+//     // Bundler mode
+//     "moduleResolution": "Node",
+//     // "verbatimModuleSyntax": true,
+
+//     // Best practices
+//     "strict": false,
+//     "skipLibCheck": true,
+//     "noFallthroughCasesInSwitch": true,
+
+//     // Some stricter flags (disabled by default)
+//     "noUnusedLocals": false,
+//     "noUnusedParameters": false,
+//     "noPropertyAccessFromIndexSignature": false
+//   },
+//   "include": ["src", "test"],
+//   "exclude": ["node_modules"]
+// }
 {
-  "ts-node": {
-    "compilerOptions": {
-      "module": "commonjs",
-      "verbatimModuleSyntax": false,
-    }
-  },
+  "files": ["index.ts"],
   "compilerOptions": {
-    // Enable latest features
-    "lib": ["ESNext"],
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleDetection": "force",
-    "jsx": "react-jsx",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": false,
     "allowJs": true,
-    "rootDir": ".",
-
-    // Bundler mode
-    "moduleResolution": "bundler",
-    "verbatimModuleSyntax": true,
-
-    // Best practices
-    "strict": false,
-    "skipLibCheck": true,
-    "noFallthroughCasesInSwitch": true,
-
-    // Some stricter flags (disabled by default)
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
-  },
-  "include": ["src", "test"],
-  "exclude": ["node_modules"]
+    "moduleResolution": "Node",
+    "declaration": true
+  }
 }

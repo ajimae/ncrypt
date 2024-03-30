@@ -1,4 +1,6 @@
-import { encode, decode, randomString } from './utils';
+import * as crypto from 'crypto';
+
+type TNCRYPT_ENC = 'base64' | 'binary' | 'hex' | 'ucs-2' | 'ucs2' | 'utf16le';
 
 /**
  * @class Ncrypt
@@ -10,6 +12,31 @@ export default class Ncrypt {
    * @type {secret.<string>} secret
    */
   private secret: string;
+
+  /**
+   * algorithm used for encoding message
+   */
+  private readonly algorithm = 'aes-256-cbc';
+
+  /**
+   * ecoding for encrypted stirng
+   */
+  private readonly enc = (process.env.NCRYPT_ENC) as TNCRYPT_ENC || 'hex';
+
+  /**
+   * crypto random initial vector generated from core node {crypto} module
+   */
+  private readonly initialVector: Buffer = crypto.randomBytes(16);
+
+  /**
+   * crypto random key generated from core node {crypto} module
+   * {note}: please read the value for KEY from your app's environment
+   */
+  private readonly key: Buffer = crypto.scryptSync(
+    process.env.KEY || 'please provide a KEY in your .env file or config',
+    'salt',
+    32
+  );
 
   /**
    * object constructor
@@ -52,6 +79,42 @@ export default class Ncrypt {
   }
 
   /**
+   * intermediate data encoder function
+   * @param {string.<any>} text
+   * @param secret
+   * @returns {string} encrypted or cipher text
+   */
+  private encode = (text: string): string => {
+    let cipher = crypto.createCipheriv(this.algorithm, Buffer.from(this.key), this.initialVector);
+    let encrypted = cipher.update(text);
+
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+    return `${this.initialVector.toString(this.enc)}.${encrypted.toString(this.enc)}`;
+  }
+
+  /**
+   * intermediate data decoder function
+   * @param {string.<any>} text
+   * @returns {string.<string>} decrypted data
+   */
+  private decode = (text: string): string => {
+    if (typeof text !== 'string') {
+      throw new TypeError('argument must be a string, or a string-like object');
+    }
+
+    const iv = text.split('.')[0];
+    const encryptedData = text.split('.')[1];
+
+    let _iv = Buffer.from(iv, this.enc);
+    let encryptedText = Buffer.from(encryptedData, this.enc);
+    let decipher = crypto.createDecipheriv(this.algorithm, Buffer.from(this.key), _iv);
+    let decrypted = decipher.update(encryptedText);
+
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return decrypted.toString();
+  }
+
+  /**
    * generate random strings
    * @example
    *
@@ -64,8 +127,8 @@ export default class Ncrypt {
    * @param {enc.<string>} enc
    * @returns {*.<string>} string
    */
-  public static randomString(size?: number, enc?: 'hex' | 'base64'): string {
-    return randomString(size, enc);
+  public static randomString(size?: number, enc: 'hex' | 'base64' = 'base64'): string {
+    return crypto.randomBytes(size || 64).toString(enc);
   }
 
   /**
@@ -86,7 +149,7 @@ export default class Ncrypt {
         .map(this.convertByteToHexadecimal)
         .join('');
 
-      return encode(encodedMessage);
+      return this.encode(encodedMessage);
     } catch (e) {
       throw new Error('invalid data was entered, enter data of type object, number, string or boolean to be encrypted.' + e);
     }
@@ -98,7 +161,7 @@ export default class Ncrypt {
    * @returns {*.<string>} decrypted data
    */
   public decrypt(text: string): string | number | boolean | object {
-    const encodeData = decode(text);
+    const encodeData = this.decode(text);
 
     const data = (encodeData).match(/.{1,2}/g)
       .map((hex: string) => parseInt(hex, 16))
